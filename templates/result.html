@@ -1,0 +1,32 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}wimpdb: Search Results{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>search results</h1>
+    </div>
+    <div class="container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">movie name</th>
+                    <th scope="col">release year</th>
+                    <th scope="col">genre</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i, movie in movies %}
+                <tr>
+                    <td>{{ i }}.</td>
+                    <td>{{ movie.name }}</td>
+                    <td>{{ movie.release_year }}</td>
+                    <!-- TODO
+                    <td>{{ movie.genre }}</td>
+                    -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
