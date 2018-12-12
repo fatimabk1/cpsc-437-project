@@ -3,7 +3,7 @@ conn = psycopg2.connect("host=localhost dbname=wimpdb user=postgres")
 cur = conn.cursor()
 
 
-create tables
+# create tables
 cur.execute("""
 CREATE TABLE directed(
     dir_id INT,
