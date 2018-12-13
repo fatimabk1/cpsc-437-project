@@ -1,7 +1,7 @@
 import os
 
 from flask import Flask, session, render_template, flash, request, redirect,\
-        url_for
+	url_for, jsonify
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from forms import QueryForm
@@ -40,8 +40,23 @@ bootstrap = Bootstrap(app)
 # Homepage (form)
 @app.route("/", methods=['GET'])
 def index():
-	form = QueryForm(request.form)
-	return render_template('index.html', form=form)
+    form = QueryForm(request.form)
+    return render_template('index.html', form=form)
+
+@app.route("/search", methods=["GET"])
+def search():
+    """
+    Endpoint for searchbox to query to get search suggestions.
+    """
+    if not request.args.get("q"):
+        raise RuntimeError("missing search query")
+
+    result = Person.query.filter(Person.name.ilike("%" + request.args.get("q")
+	    + "%")).all()
+    json = []
+    for person in result:
+        json.append({"name": person.name})
+    return jsonify(json)
 
 # Form submission
 @app.route("/submit", methods=["POST"])
@@ -56,26 +71,26 @@ def process_form():
     # MVP of database operations
     # TODO: we should do the set operations in the DB queries, not Python!
     results = set()
-    movie_genres = None
 
     if start_year:
-        # Since these values are required, I guess we don't really need this check?
+	# Since these values are required, I guess we don't really need this check?
         movies_in_year_range = Movie.query.filter(
-                Movie.release_year >= start_year,
-                Movie.release_year <= end_year).order_by(Movie.release_year)
+		Movie.release_year >= start_year,
+		Movie.release_year <= end_year).order_by(Movie.release_year)
         results = set(movies_in_year_range)
     if director:
         movies_with_director = Movie.query.join(Direction,
                 Movie.id == Direction.movie_id).join(Person,
-                        Direction.director_id == Person.id).filter(
-                                Person.name == director)
+                Direction.director_id == Person.id).filter(
+                        Person.name == director)
         results &= set(movies_with_director)
     if actor:
         movies_with_actor = Movie.query.join(Appearance,
-                Movie.id == Appearance.movie_id).join(Person,
-                        Appearance.actor_id == Person.id).filter(
-                                Person.name == actor)
+		        Movie.id == Appearance.movie_id).join(Person,
+			        Appearance.actor_id == Person.id).filter(
+				            Person.name == actor)
         results &= set(movies_with_actor)
+
     if genres:
         movies_of_genre = Movie.query.join(Genre,
                 Movie.id == Genre.movie_id).filter(Genre.genre.in_(genres))
@@ -84,10 +99,10 @@ def process_form():
 
     # Render result in order of release year, alphabetical order within a year
     sorted_results = sorted(list(results),
-            key=lambda movie: (movie.release_year, movie.name))
+	    key=lambda movie: (movie.release_year, movie.name))
     return render_template("result.html",
-           message=f"",
-           movies=enumerate(sorted_results, 1))
+	   message=f"",
+	   movies=enumerate(sorted_results, 1))
 
 # Run Flask
 if __name__ == '__main__':
